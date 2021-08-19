@@ -1,4 +1,18 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+// When no feature is active this crate is unusable but contains lots of
+// unused imports and dead code. To avoid useless warnings about this they
+// are allowed when no feature is active.
+#![cfg_attr(
+    not(any(
+        feature = "tokio_lib",
+        feature = "async_std_lib",
+        feature = "static_output"
+    )),
+    allow(unused_imports),
+    allow(dead_code)
+)]
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
 
 //! A fast, asynchronous terminal paging library for Rust. `minus` provides high
 //! level functions to easily embed a pager for any terminal application.
@@ -83,43 +97,41 @@
 //! [`moins`]: https://crates.io/crates/moins
 //! [`pijul`]: https://pijul.org/
 
-// When no feature is active this crate is unusable but contains lots of
-// unused imports and dead code. To avoid useless warnings about this they
-// are allowed when no feature is active.
-#![cfg_attr(
-    not(any(
-        feature = "tokio_lib",
-        feature = "async_std_lib",
-        feature = "static_output"
-    )),
-    allow(unused_imports),
-    allow(dead_code)
-)]
-#![deny(clippy::all)]
-#![warn(clippy::pedantic)]
-
-pub mod error;
+// Private modules
 mod init;
+mod stream;
+mod utils;
+
+// Public modules
+pub mod error;
 pub mod input;
+
+// Modules gated on specific features
 #[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
 mod rt_wrappers;
 #[cfg(feature = "search")]
 mod search;
 #[cfg(feature = "static_output")]
 mod static_pager;
-mod utils;
+
+// Imports gated on features
 #[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
 use async_mutex::Mutex;
-use crossterm::{terminal, tty::IsTty};
-use error::AlternateScreenPagingError;
 #[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
 pub use rt_wrappers::*;
 #[cfg(feature = "search")]
 pub use search::SearchMode;
 #[cfg(feature = "static_output")]
 pub use static_pager::page_all;
-use std::{fmt, io::stdout};
+
+use crossterm::{terminal, tty::IsTty};
+use error::AlternateScreenPagingError;
+use std::{
+    fmt,
+    io::{self, stdout, Stdout},
+};
 use std::{iter::Flatten, string::ToString, vec::IntoIter};
+use stream::OutStream;
 pub use utils::LineNumbers;
 
 #[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
@@ -156,6 +168,7 @@ pub type ExitCallbacks = Vec<Box<dyn FnMut() + Send + Sync + 'static>>;
 ///
 /// This is used by all initializing functions
 pub struct Pager {
+    out_stream: OutStream,
     // The output that is displayed wrapped to the available terminal width
     wrap_lines: Vec<Vec<String>>,
     // Configuration for line numbers. See [`LineNumbers`]
@@ -211,14 +224,18 @@ impl Pager {
     /// ```
     /// let pager = minus::Pager::new().unwrap();
     /// ```
-    pub fn new() -> Result<Self, error::TermError> {
+    pub fn new() -> Result<Pager, error::TermError> {
+        Self::new_inner(stdout().into())
+    }
+
+    pub(crate) fn new_inner(out: OutStream) -> Result<Pager, error::TermError> {
         let (rows, cols);
 
         if cfg!(test) {
             // In tests, set these number of columns to 80 and rows to 10
             cols = 80;
             rows = 10;
-        } else if stdout().is_tty() {
+        } else if out.is_tty() {
             // If a proper terminal is present, get size and set it
             let size = terminal::size()?;
             cols = size.0;
@@ -230,6 +247,7 @@ impl Pager {
         };
 
         Ok(Pager {
+            out_stream: out,
             wrap_lines: Vec::new(),
             line_numbers: LineNumbers::Disabled,
             upper_mark: 0,
@@ -488,8 +506,8 @@ impl Pager {
 }
 
 impl std::default::Default for Pager {
-    fn default() -> Self {
-        Pager::new().unwrap()
+    fn default() -> Pager {
+        Pager::new_inner(stdout().into()).unwrap()
     }
 }
 
