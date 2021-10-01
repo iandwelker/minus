@@ -7,12 +7,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let increment = async {
         for i in 0..=100_u32 {
-            let mut output = output.lock().await;
+            let mut output = output.lock().unwrap();
             output.push_str(format!("{}\n", i));
             drop(output);
             sleep(Duration::from_millis(100)).await;
         }
-        let mut output = output.lock().await;
+        let mut output = output.lock().unwrap();
         output.end_data_stream();
         Result::<_, std::fmt::Error>::Ok(())
     };

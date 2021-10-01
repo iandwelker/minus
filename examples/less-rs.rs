@@ -22,7 +22,7 @@ async fn read_file(
         let mut buff = String::new();
         let mut buf_reader = async_std::io::BufReader::new(file);
         buf_reader.read_to_string(&mut buff).await?;
-        let mut guard = pager.lock().await;
+        let mut guard = pager.lock().unwrap();
         guard.push_str(buff);
         std::io::Result::<_>::Ok(())
     };

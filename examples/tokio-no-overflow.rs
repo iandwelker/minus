@@ -11,12 +11,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pager = pager.finish();
     let incrementor = async {
         for i in 0..=10u32 {
-            let mut output = pager.lock().await;
+            let mut output = pager.lock().unwrap();
             writeln!(output, "{}", i)?;
             drop(output);
             sleep(Duration::from_millis(200)).await;
         }
-        let mut output = pager.lock().await;
+        let mut output = pager.lock().unwrap();
         output.end_data_stream();
         Result::<_, std::fmt::Error>::Ok(())
     };

@@ -108,8 +108,6 @@ mod search;
 #[cfg(feature = "static_output")]
 mod static_pager;
 mod utils;
-#[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
-use async_mutex::Mutex;
 use crossterm::{terminal, tty::IsTty};
 use error::AlternateScreenPagingError;
 #[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
@@ -118,6 +116,8 @@ pub use rt_wrappers::*;
 pub use search::SearchMode;
 #[cfg(feature = "static_output")]
 pub use static_pager::page_all;
+#[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
+use std::sync::{Arc, Mutex};
 use std::{fmt, io::stdout};
 use std::{iter::Flatten, string::ToString, vec::IntoIter};
 pub use utils::LineNumbers;
@@ -128,7 +128,7 @@ pub use utils::LineNumbers;
     doc(cfg(any(feature = "tokio_lib", feature = "async_std_lib")))
 )]
 /// A convenience type for `std::sync::Arc<async_mutex::Mutex<Pager>>`
-pub type PagerMutex = std::sync::Arc<Mutex<Pager>>;
+pub type PagerMutex = Arc<Mutex<Pager>>;
 /// A convenience type for `Vec<Box<dyn FnMut() + Send + Sync + 'static>>`
 pub type ExitCallbacks = Vec<Box<dyn FnMut() + Send + Sync + 'static>>;
 

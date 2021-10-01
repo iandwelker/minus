@@ -21,11 +21,10 @@ textwrap = { version = "~0.13", default-features = false, features = ["unicode-w
 tokio = { version = "^1", optional = true, default-features = false, features = ["rt"] }
 thiserror = "^1"
 regex = { version = "^1", optional = true }
-async-mutex = { version="^1", optional = true }
 
 [features]
-async_std_lib = [ "async-std", "async-mutex" ]
-tokio_lib = [ "tokio", "async-mutex" ]
+async_std_lib = [ "async-std" ]
+tokio_lib = [ "tokio" ]
 search = [ "regex" ]
 static_output = []
 

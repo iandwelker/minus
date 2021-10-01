@@ -16,7 +16,7 @@ use crate::{
 };
 
 #[cfg(any(feature = "tokio_lib", feature = "async_std_lib"))]
-use async_mutex::Mutex;
+use crate::PagerMutex;
 use crossterm::{cursor::MoveTo, event, execute};
 #[cfg(feature = "search")]
 use std::convert::{TryFrom, TryInto};
@@ -32,11 +32,11 @@ use std::sync::Arc;
 // fail.
 #[cfg(any(feature = "async_std_lib", feature = "tokio_lib"))]
 pub(crate) async fn dynamic_paging(
-    p: &Arc<Mutex<Pager>>,
+    p: &PagerMutex,
 ) -> std::result::Result<(), AlternateScreenPagingError> {
     // Setup terminal, adjust line wraps and get rows
     let mut out = io::stdout();
-    let guard = p.lock().await;
+    let guard = p.lock().unwrap();
     let run_no_overflow = guard.run_no_overflow;
     setup(&out, true, run_no_overflow)?;
     drop(guard);
@@ -51,7 +51,7 @@ pub(crate) async fn dynamic_paging(
 
     loop {
         // Get the lock, clone it and immidiately drop the lock
-        let mut guard = p.lock().await;
+        let mut guard = p.lock().unwrap();
 
         // Display the text continously if last displayed line count is not same and
         // all rows are not filled
@@ -81,7 +81,7 @@ pub(crate) async fn dynamic_paging(
             .map_err(|e| AlternateScreenPagingError::HandleEvent(e.into()))?
         {
             // Lock the value again
-            let mut lock = p.lock().await;
+            let mut lock = p.lock().unwrap();
 
             // Get the events
             let input = lock.input_classifier.classify_input(
