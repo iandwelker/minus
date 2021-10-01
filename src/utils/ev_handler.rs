@@ -8,6 +8,7 @@ use crate::{error::AlternateScreenPagingError, input::InputEvent, Pager};
 // This file contains the handle_input function to handle events
 
 // This function matches the given Option<InputEvent> and handles the event appropriately
+#[allow(unused_mut)]
 pub(crate) fn handle_input(
     ev: &Option<InputEvent>,
     mut pager: &mut Pager,
