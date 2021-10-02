@@ -53,5 +53,5 @@ use super::{run, AlternateScreenPagingError, PagerMutex};
 #[cfg(feature = "tokio_lib")]
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio_lib")))]
 pub async fn tokio_updating(pager: PagerMutex) -> Result<(), AlternateScreenPagingError> {
-    tokio::task::spawn(run(pager)).await?
+    tokio::task::spawn_blocking(|| run(pager)).await?
 }

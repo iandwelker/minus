@@ -17,6 +17,6 @@ mod tokio_wrapper;
 pub use tokio_wrapper::tokio_updating;
 
 /// Private function that contains the implemenation for the async display.
-async fn run(pager: PagerMutex) -> Result<(), AlternateScreenPagingError> {
-    init::dynamic_paging(&pager).await
+fn run(pager: PagerMutex) -> Result<(), AlternateScreenPagingError> {
+    init::dynamic_paging(&pager)
 }

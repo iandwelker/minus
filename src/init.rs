@@ -31,7 +31,7 @@ use std::sync::Arc;
 // Setting/cleaning up the terminal can fail and IO to/from the terminal can
 // fail.
 #[cfg(any(feature = "async_std_lib", feature = "tokio_lib"))]
-pub(crate) async fn dynamic_paging(
+pub(crate) fn dynamic_paging(
     p: &PagerMutex,
 ) -> std::result::Result<(), AlternateScreenPagingError> {
     // Setup terminal, adjust line wraps and get rows

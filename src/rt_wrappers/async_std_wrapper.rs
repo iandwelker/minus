@@ -53,5 +53,5 @@ use super::{run, AlternateScreenPagingError, PagerMutex};
 #[cfg(feature = "async_std_lib")]
 #[cfg_attr(docsrs, doc(cfg(feature = "async_std_lib")))]
 pub async fn async_std_updating(pager: PagerMutex) -> Result<(), AlternateScreenPagingError> {
-    async_std::task::spawn(run(pager)).await
+    async_std::task::spawn(async { run(pager) }).await
 }
