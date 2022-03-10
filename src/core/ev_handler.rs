@@ -107,6 +107,16 @@ pub fn handle_event(
                 p.upper_mark = y;
             }
         }
+        #[cfg(feature = "search")]
+        Event::SetSearchAnsiInsensitively(val) => {
+            p.search_ansi_insensitively = val;
+
+            // If we've already searched something, we want to reformat things 
+            if p.search_term.is_some() {
+                search::set_match_indices(p);
+                p.format_lines();
+            }
+        }
         Event::AppendData(text) => p.append_str(&text),
         Event::SetPrompt(prompt) => p.prompt = wrap_str(&prompt, p.cols),
         Event::SendMessage(message) => {

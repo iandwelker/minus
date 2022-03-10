@@ -324,6 +324,23 @@ impl Pager {
         Ok(self.tx.send(Event::SetLineNumbers(l))?)
     }
 
+    /// Set whether to search for search terms in each line after
+    /// stripping them of any ansi escape codes
+    ///
+    /// If this is true, minus will temporarily strip each line of the text of
+    /// ansi escape codes before checking to see if that line (while stripped)
+    /// matches the search term. If it is set to false, it will check the line 
+    /// without modifying it at all.
+    ///
+    /// # Errors
+    /// This function will return a [`Err(MinusError::Communication)`](MinusError::Communication)
+    /// if the data could not be sent to the receiver.
+    #[cfg(feature = "search")]
+    #[cfg_attr(docsrs, cfg(feature = "search"))]
+    pub fn set_search_ansi_insensitively(&self, insensitive: bool) -> Result<(), MinusError> {
+        Ok(self.tx.send(Event::SetSearchAnsiInsensitively(insensitive))?)
+    }
+
     /// Set the text displayed at the bottom prompt
     ///
     /// # Panics
@@ -535,6 +552,10 @@ pub struct PagerState {
     /// It should be 0 even when no search is in action
     #[cfg(feature = "search")]
     search_mark: usize,
+    /// Whether or not to check for search matches in each
+    /// line after stripping them of ansi escapes
+    #[cfg(feature = "search")]
+    search_ansi_insensitively: bool,
     /// Available rows in the terminal
     pub rows: usize,
     /// Available columns in the terminal
@@ -584,6 +605,8 @@ impl PagerState {
             search_idx: Vec::new(),
             #[cfg(feature = "search")]
             search_mark: 0,
+            #[cfg(feature = "search")]
+            search_ansi_insensitively: false,
             // Just to be safe in tests, keep at 1x1 size
             cols,
             rows,

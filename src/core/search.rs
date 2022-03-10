@@ -135,11 +135,22 @@ pub fn set_match_indices(pager: &mut PagerState) {
         .iter()
         .enumerate()
         .filter_map(|(idx, line)| {
-            if pattern.is_match(line) {
-                Some(idx)
-            } else {
-                None
+            macro_rules! is_match{
+                ($line:ident) => {
+                    return if pattern.is_match(&$line) {
+                        Some(idx)
+                    } else {
+                        None
+                    }
+                }
             }
+
+            if pager.search_ansi_insensitively {
+                let stripped_line = ANSI_REGEX.replace_all(line, "");
+                is_match!(stripped_line)
+            }
+
+            is_match!(line);
         })
         .collect();
 }

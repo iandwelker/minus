@@ -19,6 +19,8 @@ pub enum Event {
     AddExitCallback(Box<dyn FnMut() + Send + Sync + 'static>),
     #[cfg(feature = "static_output")]
     SetRunNoOverflow(bool),
+    #[cfg(feature = "search")]
+    SetSearchAnsiInsensitively(bool),
 }
 
 impl PartialEq for Event {
@@ -53,6 +55,8 @@ impl Debug for Event {
             #[cfg(feature = "static_output")]
             Self::SetRunNoOverflow(val) => write!(f, "SetRunNoOverflow({:?})", val),
             Self::UserInput(input) => write!(f, "UserInput({:?})", input),
+            #[cfg(feature = "search")]
+            Self::SetSearchAnsiInsensitively(val) => write!(f, "SetSearchAnsiInsensitively({:?})", val),
         }
     }
 }
